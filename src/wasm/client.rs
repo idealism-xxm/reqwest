@@ -13,6 +13,9 @@ use crate::IntoUrl;
 extern "C" {
     #[wasm_bindgen(js_name = fetch)]
     fn fetch_with_request(input: &web_sys::Request) -> Promise;
+    
+    #[wasm_bindgen(js_name = __fetch_without_cors)]
+    fn fetch_without_cors(input: &web_sys::Request) -> Promise;
 }
 
 fn js_fetch(req: &web_sys::Request) -> Promise {
@@ -24,6 +27,9 @@ fn js_fetch(req: &web_sys::Request) -> Promise {
         global
             .unchecked_into::<web_sys::ServiceWorkerGlobalScope>()
             .fetch_with_request(req)
+    } else if let Ok(true) = js_sys::Reflect::has(&global, &JsValue::from_str("__fetch_without_cors")) {
+        // browser fetch without cors
+        fetch_without_cors(req)
     } else {
         // browser
         fetch_with_request(req)
